@@ -1,0 +1,247 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { supabase } from '../../lib/supabase';
+
+// Fetch session and salon data
+const { data: { session } } = await supabase.auth.getSession();
+const userId = session?.user?.id;
+
+const { data: salon } = await supabase
+  .from('salones')
+  .select('*')
+  .eq('owner_id', userId)
+  .single();
+
+if (!salon) {
+  return Astro.redirect('/login');
+}
+
+// Fetch some stats
+const { count: totalCitas } = await supabase
+  .from('citas')
+  .select('*', { count: 'exact', head: true })
+  .eq('salon_id', salon.id);
+
+const { data: proximasCitas } = await supabase
+  .from('citas')
+  .select('*, profesionales(nombre), servicios(nombre)')
+  .eq('salon_id', salon.id)
+  .order('fecha_inicio', { ascending: true })
+  .limit(5);
+
+const publicUrl = `${Astro.url.origin}/${salon.slug}`;
+---
+
+<AdminLayout title="Dashboard">
+  <div class="dashboard">
+    
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-label">Citas totales</span>
+          <svg class="stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </div>
+        <strong class="stat-value">{totalCitas || 0}</strong>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-label">Ingresos hoy</span>
+          <svg class="stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <strong class="stat-value">S/ 0.00</strong>
+      </div>
+      <div class="stat-card highlight">
+        <div class="stat-top">
+          <span class="stat-label">Tu enlace público</span>
+          <svg class="stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        </div>
+        <button class="copy-btn" onclick={`navigator.clipboard.writeText('${publicUrl}'); window.showToast('¡Enlace copiado!')`}>
+          Copiar enlace
+        </button>
+      </div>
+    </div>
+
+    <!-- Content grid -->
+    <div class="content-grid">
+      <section class="custom-card upcoming-section">
+        <div class="section-head">
+          <h2>Próximas citas</h2>
+          <a href="/admin/agenda" class="link-muted">Ver todas →</a>
+        </div>
+        
+        <div class="citas-list">
+          {proximasCitas && proximasCitas.length > 0 ? proximasCitas.map(cita => (
+            <div class="cita-row">
+              <div class="cita-time">
+                {new Date(cita.fecha_inicio).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              <div class="cita-details">
+                <strong>{cita.cliente_nombre}</strong>
+                <span>{cita.servicios?.nombre} · {cita.profesionales?.nombre}</span>
+              </div>
+              <span class="badge badge-success">Confirmada</span>
+            </div>
+          )) : (
+            <p class="empty-state">No hay citas programadas.</p>
+          )}
+        </div>
+      </section>
+
+      <section class="custom-card preview-section">
+        <h2>Vista previa</h2>
+        <div class="preview-box">
+          <strong>{salon.nombre}</strong>
+          <span>{salon.direccion}</span>
+          <a href={publicUrl} target="_blank" class="btn-custom btn-primary-custom btn-sm">Ver página pública</a>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <style>
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .stat-icon { color: var(--text-muted); }
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-card.highlight {
+      background: rgba(193, 214, 62, 0.04);
+      border-color: rgba(193, 214, 62, 0.12);
+    }
+    .stat-card.highlight .stat-icon { color: var(--accent-primary); }
+
+    .copy-btn {
+      background: var(--accent-primary);
+      color: #0c0f0a;
+      border: none;
+      padding: 0.4375rem 0.875rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      align-self: flex-start;
+    }
+    .copy-btn:hover { background: var(--accent-secondary); }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 0.75rem;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .section-head h2 {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .link-muted {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.75rem;
+      transition: color var(--transition-fast);
+    }
+    .link-muted:hover { color: var(--accent-primary); }
+
+    .citas-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .cita-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+    }
+    .cita-time {
+      font-weight: 600;
+      font-size: 0.8125rem;
+      color: var(--accent-primary);
+      min-width: 48px;
+    }
+    .cita-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .cita-details strong { font-size: 0.8125rem; font-weight: 600; }
+    .cita-details span { color: var(--text-secondary); font-size: 0.75rem; }
+
+    .empty-state {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .preview-section h2 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .preview-box {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .preview-box strong {
+      font-size: 0.9375rem;
+    }
+    .preview-box span {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    @media (max-width: 968px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</AdminLayout>

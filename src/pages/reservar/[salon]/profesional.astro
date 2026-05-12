@@ -1,0 +1,113 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+const { salon: slug } = Astro.params;
+
+const { data: salon } = await supabase
+  .from('salones')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (!salon) return Astro.redirect('/404');
+
+const { data: profesionales } = await supabase
+  .from('profesionales')
+  .select('*')
+  .eq('salon_id', salon.id)
+  .eq('activo', true);
+---
+
+<BaseLayout title={`Elegir Profesional | ${salon.nombre}`}>
+  <div class="booking-flow">
+    <div class="booking-header">
+      <div class="steps">
+        <span class="step done">✓</span>
+        <span class="step-line filled"></span>
+        <span class="step active">2</span>
+        <span class="step-line"></span>
+        <span class="step">3</span>
+        <span class="step-line"></span>
+        <span class="step">4</span>
+      </div>
+      <h1>¿Quién te atenderá?</h1>
+      <p class="booking-sub" id="service-summary"></p>
+    </div>
+
+    <div class="options-list">
+      {profesionales?.map(p => (
+        <button class="custom-card option-card" onclick={`selectProf(${JSON.stringify(p)})`}>
+          <div class="prof-row">
+            <div class="prof-avatar">{p.nombre[0]}</div>
+            <div class="option-info">
+              <h3>{p.nombre} {p.apellido}</h3>
+              <span>{p.especialidades?.join(' · ')}</span>
+            </div>
+          </div>
+        </button>
+      ))}
+      
+      <button class="custom-card option-card" onclick='selectProf({id: null, nombre: "Cualquiera"})'>
+        <div class="prof-row">
+          <div class="prof-avatar muted">?</div>
+          <div class="option-info">
+            <h3>Cualquier profesional</h3>
+            <span>Asignación según disponibilidad</span>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <style>
+    .booking-flow { max-width: 640px; margin: 0 auto; padding: 3rem 1.5rem; }
+    
+    .booking-header { text-align: center; margin-bottom: 2.5rem; }
+    .steps { display: flex; justify-content: center; align-items: center; gap: 0; margin-bottom: 1.5rem; }
+    .step { 
+      width: 32px; height: 32px; border-radius: var(--radius-full); 
+      background: var(--bg-tertiary); border: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center; 
+      font-weight: 600; font-size: 0.75rem; color: var(--text-muted); 
+      flex-shrink: 0;
+    }
+    .step.active { background: var(--accent-primary); color: #0c0f0a; border-color: var(--accent-primary); }
+    .step.done { background: var(--bg-tertiary); color: var(--accent-primary); border-color: var(--accent-primary); }
+    .step-line { width: 32px; height: 1px; background: var(--glass-border); }
+    .step-line.filled { background: var(--accent-primary); }
+    
+    .booking-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .booking-sub { font-size: 0.8125rem; color: var(--text-secondary); }
+
+    .options-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .option-card { 
+      width: 100%; text-align: left; cursor: pointer; 
+      padding: 1.25rem;
+      transition: border-color var(--transition-fast);
+    }
+    .option-card:hover { border-color: var(--border-active); }
+
+    .prof-row { display: flex; align-items: center; gap: 1rem; }
+    .prof-avatar { 
+      width: 44px; height: 44px; background: var(--bg-tertiary); 
+      border: 1px solid var(--glass-border); border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 1rem; color: var(--accent-primary); flex-shrink: 0;
+    }
+    .prof-avatar.muted { color: var(--text-muted); }
+    .option-info h3 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.125rem; }
+    .option-info span { font-size: 0.75rem; color: var(--text-secondary); }
+  </style>
+
+  <script is:inline>
+    const service = JSON.parse(sessionStorage.getItem('reserva_servicio') || '{}');
+    document.getElementById('service-summary').innerText = `Servicio: ${service.nombre || 'No seleccionado'}`;
+
+    function selectProf(prof) {
+      sessionStorage.setItem('reserva_profesional', JSON.stringify(prof));
+      const slug = window.location.pathname.split('/')[2];
+      window.location.href = `/reservar/${slug}/fecha`;
+    }
+  </script>
+</BaseLayout>

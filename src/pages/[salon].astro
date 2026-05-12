@@ -1,0 +1,236 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { supabase } from '../lib/supabase';
+
+const { salon: slug } = Astro.params;
+
+const { data: salon } = await supabase
+  .from('salones')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (!salon) return Astro.redirect('/404');
+
+const { data: servicios } = await supabase
+  .from('servicios')
+  .select('*')
+  .eq('salon_id', salon.id)
+  .eq('activo', true);
+
+// Variables de estilo dinámicas
+const primaryColor = salon.color_primario || '#c1d63e';
+const accentColor = salon.color_acento || '#a3b835';
+---
+
+<BaseLayout title={salon.nombre}>
+  <div class="salon-page" style={`--accent-primary: ${primaryColor}; --accent-secondary: ${accentColor};`}>
+    <header class="salon-header">
+      <div class="salon-identity">
+        <div class="salon-logo">
+          {salon.logo_url ? (
+            <img src={salon.logo_url} alt={salon.nombre} />
+          ) : (
+            <span>{salon.nombre[0]}</span>
+          )}
+        </div>
+        <div>
+          <h1>{salon.nombre}</h1>
+          <p>{salon.direccion}, {salon.ciudad}</p>
+        </div>
+      </div>
+      <a href={`/reservar/${slug}`} class="btn-custom btn-primary-custom btn-lg">Reservar cita</a>
+    </header>
+
+    <div class="salon-layout">
+      <section class="services-section">
+        <h2>Servicios</h2>
+        <div class="services-list">
+          {servicios?.map(s => (
+            <div class="custom-card service-item">
+              <div class="service-left">
+                <h3>{s.nombre}</h3>
+                <p>{s.descripcion}</p>
+              </div>
+              <div class="service-right">
+                <span class="service-duration">{s.duracion_min} min</span>
+                <strong class="service-price">S/ {s.precio}</strong>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <aside class="salon-sidebar">
+        <div class="custom-card sidebar-card">
+          <h3>Horario</h3>
+          <div class="schedule-list">
+            <div class="schedule-row"><span>Lun - Vie</span><span>9:00 - 20:00</span></div>
+            <div class="schedule-row"><span>Sábado</span><span>9:00 - 18:00</span></div>
+            <div class="schedule-row"><span>Domingo</span><span class="closed">Cerrado</span></div>
+          </div>
+        </div>
+        <div class="custom-card sidebar-card">
+          <h3>Contacto</h3>
+          <div class="contact-info">
+            {salon.telefono && <span>{salon.telefono}</span>}
+            <span>WhatsApp disponible</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <style>
+    .salon-page {
+      max-width: var(--container-max-width);
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+    
+    .salon-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .salon-identity {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .salon-logo { 
+      width: 64px; 
+      height: 64px; 
+      background: var(--bg-tertiary); 
+      border-radius: var(--radius-lg); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 1.5rem; 
+      font-weight: 700; 
+      color: var(--accent-primary); 
+      border: 1px solid var(--glass-border);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .salon-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .salon-identity h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.125rem;
+    }
+    .salon-identity p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .salon-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 1.5rem;
+    }
+
+    .services-section h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .services-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .service-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem;
+      transition: border-color var(--transition-fast);
+    }
+    .service-item:hover {
+      border-color: var(--border-active);
+    }
+    .service-left h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .service-left p {
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+    }
+    .service-right {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+    .service-duration {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .service-price {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    .sidebar-card {
+      padding: 1.25rem;
+    }
+    .sidebar-card h3 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.875rem;
+    }
+    .schedule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .schedule-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+    }
+    .schedule-row span:first-child { color: var(--text-secondary); }
+    .schedule-row span:last-child { font-weight: 500; }
+    .closed { color: var(--accent-danger); }
+
+    .salon-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+    .contact-info span {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      .salon-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+      }
+      .salon-identity { flex-direction: column; }
+      .salon-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</BaseLayout>

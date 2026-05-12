@@ -1,0 +1,649 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { supabase } from "../lib/supabase";
+
+const { data: salon } = await supabase
+  .from("salones")
+  .select("*")
+  .limit(1)
+  .single();
+
+const demoUrl = salon ? `/${salon.slug}` : "/admin";
+---
+
+<BaseLayout title="TurnoBar | Sistema de Reservas para tu Negocio">
+  <header class="main-header">
+    <nav class="nav-container">
+      <a href="/" class="logo">
+        <img src="/logo.png" alt="BARBERCLOUD" class="logo-img" />
+        <span class="logo-text"
+          >TURNO<span class="text-accent-gradient">CLOUD</span></span
+        >
+      </a>
+      <div class="nav-links">
+        <a href="/login" class="nav-link">Iniciar sesión</a>
+        <a href="/signup" class="btn-custom btn-primary-custom"
+          >Empieza gratis</a
+        >
+      </div>
+    </nav>
+  </header>
+
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Nuevo: Reservas automáticas
+      </div>
+      <h1 class="hero-title">
+        Domina tu agenda.<br />
+        <span class="text-accent-gradient">Potencia tu Barbería.</span>
+      </h1>
+      <p class="hero-description">
+        La infraestructura digital diseñada para barberos de élite. Gestiona
+        citas, equipo y métricas con una interfaz impecable.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/signup" class="btn-custom btn-primary-custom btn-lg"
+          >Empezar ahora</a
+        >
+        <a href={demoUrl} class="btn-custom btn-outline btn-lg">Explorar Demo</a
+        >
+      </div>
+
+      <div class="hero-trust">
+        <span class="trust-text">Con la confianza de +500 barberías</span>
+        <div class="trust-dots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="dashboard-preview">
+        <div class="preview-bar">
+          <div class="preview-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="preview-url">reservasimple.app/mi-salon</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-sidebar">
+            <div class="ps-item active"></div>
+            <div class="ps-item"></div>
+            <div class="ps-item"></div>
+            <div class="ps-item"></div>
+          </div>
+          <div class="preview-main">
+            <div class="pm-header"></div>
+            <div class="pm-cards">
+              <div class="pm-card">
+                <div class="pm-card-top"></div>
+                <div class="pm-card-value"></div>
+              </div>
+              <div class="pm-card">
+                <div class="pm-card-top"></div>
+                <div class="pm-card-value"></div>
+              </div>
+              <div class="pm-card accent">
+                <div class="pm-card-top"></div>
+                <div class="pm-card-value"></div>
+              </div>
+            </div>
+            <div class="pm-rows">
+              <div class="pm-row"></div>
+              <div class="pm-row"></div>
+              <div class="pm-row"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section">
+    <div class="features-header">
+      <span class="section-label">Características</span>
+      <h2>Todo lo que necesitas para gestionar tu negocio</h2>
+      <p>Herramientas profesionales diseñadas para simplificar tu día a día.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="custom-card feature-card">
+        <div class="feature-icon">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line
+              x1="16"
+              y1="2"
+              x2="16"
+              y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line
+              x1="3"
+              y1="10"
+              x2="21"
+              y2="10"></line></svg
+          >
+        </div>
+        <h3>Agenda en línea 24/7</h3>
+        <p>
+          Tus clientes reservan cuando quieran, desde cualquier dispositivo. Sin
+          llamadas, sin esperas.
+        </p>
+      </div>
+      <div class="custom-card feature-card">
+        <div class="feature-icon">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle
+              cx="9"
+              cy="7"
+              r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path
+              d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg
+          >
+        </div>
+        <h3>Gestión de equipo</h3>
+        <p>
+          Controla horarios, servicios y disponibilidad de cada profesional en
+          un solo panel.
+        </p>
+      </div>
+      <div class="custom-card feature-card">
+        <div class="feature-icon">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><line x1="18" y1="20" x2="18" y2="10"></line><line
+              x1="12"
+              y1="20"
+              x2="12"
+              y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg
+          >
+        </div>
+        <h3>Reportes y métricas</h3>
+        <p>
+          Visualiza el crecimiento de tu negocio con reportes claros sobre citas
+          e ingresos.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-card">
+      <h2>¿Listo para simplificar tus reservas?</h2>
+      <p>
+        Únete a los negocios que ya gestionan sus citas de forma profesional.
+      </p>
+      <a href="/signup" class="btn-custom btn-primary-custom btn-lg"
+        >Empezar ahora — Es gratis</a
+      >
+    </div>
+  </section>
+
+  <style>
+    /* ── Header ── */
+    .main-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(12, 15, 10, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .nav-container {
+      height: var(--header-height);
+      max-width: var(--container-max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      text-decoration: none;
+    }
+    .logo-mark {
+      width: 30px;
+      height: 30px;
+      background: var(--accent-primary);
+      color: #0c0f0a;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .logo-text {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md);
+      transition: color var(--transition-fast);
+    }
+    .nav-link:hover {
+      color: var(--text-primary);
+    }
+
+    /* ── Hero ── */
+    .hero-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      max-width: var(--container-max-width);
+      margin: 0 auto;
+      padding: 5rem 1.5rem 4rem;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(193, 214, 62, 0.08);
+      border: 1px solid rgba(193, 214, 62, 0.15);
+      color: var(--accent-primary);
+      padding: 0.25rem 0.875rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+    }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease infinite;
+    }
+    @keyframes pulse-dot {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    .hero-title {
+      font-size: 4.5rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .text-accent-gradient {
+      background: linear-gradient(
+        to right,
+        var(--accent-primary),
+        var(--accent-secondary)
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin-bottom: 2.5rem;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-trust {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      opacity: 0.6;
+    }
+    .trust-text {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .trust-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+    }
+
+    /* ── Dashboard Preview (Mockup) ── */
+    .hero-visual {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .dashboard-preview {
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow:
+        var(--shadow-lg),
+        0 0 60px rgba(193, 214, 62, 0.03);
+    }
+
+    .preview-bar {
+      height: 36px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      padding: 0 0.875rem;
+      gap: 0.75rem;
+    }
+    .preview-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .preview-dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .preview-url {
+      font-size: 0.625rem;
+      color: var(--text-muted);
+      background: var(--bg-primary);
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
+      flex: 1;
+      text-align: center;
+    }
+
+    .preview-body {
+      display: flex;
+      height: 320px;
+    }
+    .preview-sidebar {
+      width: 52px;
+      background: var(--bg-tertiary);
+      border-right: 1px solid var(--glass-border);
+      padding: 0.75rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .ps-item {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .ps-item.active {
+      background: var(--accent-primary);
+      opacity: 0.6;
+    }
+
+    .preview-main {
+      flex: 1;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+    .pm-header {
+      height: 10px;
+      width: 35%;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+    }
+    .pm-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .pm-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .pm-card-top {
+      height: 6px;
+      width: 60%;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+    .pm-card-value {
+      height: 14px;
+      width: 45%;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+    }
+    .pm-card.accent {
+      background: rgba(193, 214, 62, 0.06);
+      border-color: rgba(193, 214, 62, 0.12);
+    }
+    .pm-card.accent .pm-card-value {
+      background: rgba(193, 214, 62, 0.25);
+    }
+    .pm-rows {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .pm-row {
+      height: 28px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+    }
+
+    /* ── Features ── */
+    .features-section {
+      max-width: var(--container-max-width);
+      margin: 0 auto;
+      padding: 5rem 1.5rem;
+    }
+    .features-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+    .features-header h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .features-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .feature-card {
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-primary);
+    }
+    .feature-card h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      max-width: var(--container-max-width);
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+    .cta-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: 3.5rem;
+      text-align: center;
+    }
+    .cta-card h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-card p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      font-size: 0.9375rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .hero-section {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 3rem;
+        padding-top: 3rem;
+      }
+      .hero-content h1 {
+        font-size: 2.5rem;
+      }
+      .hero-description {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-actions {
+        justify-content: center;
+      }
+      .hero-note {
+        text-align: center;
+      }
+      .hero-visual {
+        justify-content: center;
+      }
+      .dashboard-preview {
+        max-width: 460px;
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-content h1 {
+        font-size: 2rem;
+      }
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-actions .btn-custom {
+        width: 100%;
+      }
+      .cta-card {
+        padding: 2rem 1.5rem;
+      }
+      .cta-card h2 {
+        font-size: 1.375rem;
+      }
+      .preview-body {
+        height: 240px;
+      }
+      .nav-link {
+        display: none;
+      }
+    }
+  </style>
+</BaseLayout>

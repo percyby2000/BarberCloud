@@ -1,0 +1,71 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { supabase } from '../../lib/supabase';
+
+// In a real app, filter by professional_id from the session
+const { data: citas } = await supabase
+  .from('citas')
+  .select('*, servicios(nombre)')
+  .order('fecha_inicio', { ascending: true });
+---
+
+<AdminLayout title="Mi Agenda">
+  <div class="prof-agenda-container">
+    <div class="today-header glass">
+      <h2>Hoy, {new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long' }).format(new Date())}</h2>
+      <div class="prof-stats">
+        <div class="stat"><span>Turnos:</span> <strong>{citas?.length || 0}</strong></div>
+        <div class="stat"><span>Ocupación:</span> <strong>85%</strong></div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      {citas?.map(cita => (
+        <div class={`timeline-item glass ${cita.estado}`}>
+          <div class="time-col">
+            <span class="start">{new Date(cita.fecha_inicio).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+          <div class="info-col">
+            <div class="client-name">{cita.cliente_nombre}</div>
+            <div class="service-name">{cita.servicios?.nombre}</div>
+            {cita.cliente_notas && <div class="notes">📝 {cita.cliente_notas}</div>}
+          </div>
+          <div class="status-col">
+            <button class="btn-status">Marcar como listo</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <style>
+    .today-header { padding: 2rem 3rem; border-radius: var(--radius-md); margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .prof-stats { display: flex; gap: 2rem; }
+    .stat span { color: var(--text-muted); font-size: 0.9rem; margin-right: 0.5rem; }
+    .stat strong { color: var(--accent-primary); font-size: 1.25rem; }
+
+    .timeline { display: flex; flex-direction: column; gap: 1rem; }
+    .timeline-item { display: flex; padding: 1.5rem 2rem; border-radius: var(--radius-md); align-items: center; border-left: 6px solid var(--glass-border); transition: var(--transition-fast); }
+    .timeline-item:hover { transform: scale(1.01); background: rgba(255, 255, 255, 0.04); }
+
+    .timeline-item.confirmada { border-left-color: var(--accent-success); }
+    .timeline-item.pendiente { border-left-color: #f1c40f; }
+
+    .time-col { width: 100px; font-size: 1.25rem; font-weight: 800; }
+    .info-col { flex: 1; }
+    .client-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .service-name { color: var(--text-secondary); font-size: 0.9rem; }
+    .notes { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic; }
+
+    .status-col { display: flex; align-items: center; }
+    .btn-status { padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--accent-success); color: var(--accent-success); font-weight: 600; font-size: 0.85rem; cursor: pointer; background: transparent; }
+    .btn-status:hover { background: var(--accent-success); color: white; }
+
+    @media (max-width: 768px) {
+      .timeline-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .time-col { width: auto; }
+      .status-col { width: 100%; }
+      .btn-status { width: 100%; }
+    }
+  </style>
+</AdminLayout>

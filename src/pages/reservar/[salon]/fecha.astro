@@ -1,0 +1,189 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+const { salon: slug } = Astro.params;
+
+const { data: salon } = await supabase
+  .from('salones')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (!salon) return Astro.redirect('/404');
+---
+
+<BaseLayout title={`Elegir Fecha | ${salon.nombre}`}>
+  <div class="booking-flow">
+    <div class="booking-header">
+      <div class="steps">
+        <span class="step done">✓</span>
+        <span class="step-line filled"></span>
+        <span class="step done">✓</span>
+        <span class="step-line filled"></span>
+        <span class="step active">3</span>
+        <span class="step-line"></span>
+        <span class="step">4</span>
+      </div>
+      <h1>¿Cuándo vendrás?</h1>
+      <p class="booking-sub" id="booking-summary"></p>
+    </div>
+
+    <div class="datetime-grid">
+      <div class="custom-card cal-card">
+        <div id="calendar-container"></div>
+      </div>
+      <div class="custom-card time-card">
+        <h3>Horarios disponibles</h3>
+        <div id="times-grid" class="times-grid">
+          <p class="empty-hint">Selecciona una fecha</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="booking-actions">
+      <button id="next-btn" class="btn-custom btn-primary-custom btn-lg is-disabled" disabled>Continuar</button>
+    </div>
+  </div>
+
+  <style>
+    .booking-flow { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem; }
+    
+    .booking-header { text-align: center; margin-bottom: 2.5rem; }
+    .steps { display: flex; justify-content: center; align-items: center; gap: 0; margin-bottom: 1.5rem; }
+    .step { 
+      width: 32px; height: 32px; border-radius: var(--radius-full); 
+      background: var(--bg-tertiary); border: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center; 
+      font-weight: 600; font-size: 0.75rem; color: var(--text-muted); 
+      flex-shrink: 0;
+    }
+    .step.active { background: var(--accent-primary); color: #0c0f0a; border-color: var(--accent-primary); }
+    .step.done { background: var(--bg-tertiary); color: var(--accent-primary); border-color: var(--accent-primary); }
+    .step-line { width: 32px; height: 1px; background: var(--glass-border); }
+    .step-line.filled { background: var(--accent-primary); }
+    
+    .booking-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .booking-sub { font-size: 0.8125rem; color: var(--text-secondary); }
+
+    .datetime-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .cal-card, .time-card { padding: 1.25rem; }
+    .time-card h3 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1rem;
+    }
+    .empty-hint { font-size: 0.8125rem; color: var(--text-muted); text-align: center; padding: 1.5rem 0; }
+
+    .times-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .time-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      padding: 0.5rem;
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-align: center;
+    }
+    .time-btn:hover { border-color: var(--border-active); color: var(--accent-primary); }
+    .time-btn.selected { 
+      background: var(--accent-primary); color: #0c0f0a; border-color: var(--accent-primary); 
+      font-weight: 600;
+    }
+
+    .booking-actions { display: flex; justify-content: center; }
+    .is-disabled { opacity: 0.3; cursor: not-allowed; }
+
+    @media (max-width: 640px) {
+      .datetime-grid { grid-template-columns: 1fr; }
+      .times-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+
+  <script is:inline>
+    const service = JSON.parse(sessionStorage.getItem('reserva_servicio') || '{}');
+    const prof = JSON.parse(sessionStorage.getItem('reserva_profesional') || '{}');
+    document.getElementById('booking-summary').innerText = `${service.nombre} con ${prof.nombre}`;
+
+    let selectedDate = null;
+    let selectedTime = null;
+
+    function renderCalendar() {
+      const container = document.getElementById('calendar-container');
+      const now = new Date();
+      const month = now.getMonth();
+      const year = now.getFullYear();
+      const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let html = `<div style="text-align:center; font-weight:600; font-size:0.8125rem; margin-bottom:1rem; color:var(--text-primary)">${monthNames[month]} ${year}</div>`;
+      html += `<div style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align:center;">`;
+      
+      ['D','L','M','M','J','V','S'].forEach(d => {
+        html += `<div style="font-size:0.625rem; font-weight:600; color:var(--text-muted); padding:4px 0;">${d}</div>`;
+      });
+
+      for (let i = 0; i < firstDay; i++) html += '<div></div>';
+      
+      for (let d = 1; d <= daysInMonth; d++) {
+        const isPast = d < now.getDate();
+        html += `<button class="cal-day" style="aspect-ratio:1; border:none; background:transparent; color:${isPast ? 'var(--text-muted)' : 'var(--text-primary)'}; font-weight:500; font-size:0.8125rem; cursor:${isPast ? 'default' : 'pointer'}; border-radius:var(--radius-md); opacity:${isPast ? '0.3' : '1'};" data-day="${d}" ${isPast ? 'disabled' : ''}>${d}</button>`;
+      }
+      
+      html += '</div>';
+      container.innerHTML = html;
+
+      container.querySelectorAll('.cal-day').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.disabled) return;
+          container.querySelectorAll('.cal-day').forEach(b => { b.style.background = 'transparent'; b.style.color = 'var(--text-primary)'; });
+          btn.style.background = 'var(--accent-primary)';
+          btn.style.color = '#0c0f0a';
+          selectedDate = `${btn.dataset.day} de ${monthNames[month]}`;
+          loadTimes();
+        });
+      });
+    }
+
+    function loadTimes() {
+      const grid = document.getElementById('times-grid');
+      const slots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+      grid.innerHTML = slots.map(t => `<button class="time-btn" onclick="selectTime('${t}', this)">${t}</button>`).join('');
+    }
+
+    window.selectTime = (time, btn) => {
+      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedTime = time;
+      const nextBtn = document.getElementById('next-btn');
+      nextBtn.classList.remove('is-disabled');
+      nextBtn.disabled = false;
+    };
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+      sessionStorage.setItem('reserva_fecha', JSON.stringify({ fecha: selectedDate, hora: selectedTime }));
+      const slug = window.location.pathname.split('/')[2];
+      window.location.href = `/reservar/${slug}/confirmacion`;
+    });
+
+    renderCalendar();
+  </script>
+</BaseLayout>

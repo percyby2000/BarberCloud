@@ -1,0 +1,222 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+const { data: { session } } = await supabase.auth.getSession();
+const userId = session?.user?.id;
+
+const { data: salon } = await supabase
+  .from('salones')
+  .select('id')
+  .eq('owner_id', userId)
+  .single();
+
+const { data: servicios } = await supabase
+  .from('servicios')
+  .select('*')
+  .eq('salon_id', salon?.id)
+  .order('created_at', { ascending: false });
+---
+
+<AdminLayout title="Servicios">
+  <div class="page-top">
+    <p class="page-desc">Gestiona los servicios que ofreces a tus clientes.</p>
+    <button class="btn-custom btn-primary-custom" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Nuevo servicio
+    </button>
+  </div>
+
+  <div class="services-list">
+    {servicios?.map(s => (
+      <div class="custom-card service-row" data-id={s.id}>
+        <div class="service-info">
+          <h3>{s.nombre}</h3>
+          <p>{s.descripcion}</p>
+          <div class="service-meta">
+            <span class="badge badge-muted">{s.duracion_min} min</span>
+            <strong>S/ {s.precio}</strong>
+          </div>
+        </div>
+        <div class="service-actions">
+          <button class="btn-custom btn-ghost btn-sm" onclick={`editService(${JSON.stringify(s)})`}>Editar</button>
+          <button class="btn-custom btn-destructive btn-sm" onclick={`deleteService(${s.id})`}>Eliminar</button>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Modal -->
+  <div id="service-modal" class="modal-overlay">
+    <div class="modal-content custom-card">
+      <h2 id="modal-title" class="modal-heading">Nuevo servicio</h2>
+      <form id="service-form">
+        <input type="hidden" name="id" id="service-id" />
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" name="nombre" required />
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <input type="text" name="categoria" required />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea name="descripcion" rows="2"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Duración (min)</label>
+            <input type="number" name="duracion_min" required />
+          </div>
+          <div class="form-group">
+            <label>Precio (S/)</label>
+            <input type="number" name="precio" required step="0.01" />
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn-custom btn-outline" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-custom btn-primary-custom">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .page-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .page-desc {
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+    }
+
+    .services-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .service-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem;
+    }
+    .service-info h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .service-info p {
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      margin-bottom: 0.75rem;
+    }
+    .service-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .service-meta strong {
+      color: var(--accent-primary);
+      font-size: 0.9375rem;
+    }
+    .service-actions {
+      display: flex;
+      gap: 0.375rem;
+      flex-shrink: 0;
+    }
+
+    .modal-heading {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .form-group {
+      margin-bottom: 0.875rem;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    @media (max-width: 640px) {
+      .page-top { flex-direction: column; gap: 0.75rem; align-items: stretch; }
+      .service-row { flex-direction: column; gap: 0.75rem; align-items: stretch; }
+      .service-actions { justify-content: flex-end; }
+    }
+  </style>
+
+  <script>
+    import { supabase } from '../../../lib/supabase';
+    const modal = document.getElementById('service-modal');
+    const form = document.getElementById('service-form') as HTMLFormElement;
+    
+    (window as any).openModal = () => {
+      form.reset();
+      (document.getElementById('service-id') as HTMLInputElement).value = '';
+      (document.getElementById('modal-title') as HTMLElement).innerText = 'Nuevo servicio';
+      modal!.style.display = 'flex';
+    };
+
+    (window as any).closeModal = () => {
+      modal!.style.display = 'none';
+    };
+
+    (window as any).editService = (s: any) => {
+      (document.getElementById('modal-title') as HTMLElement).innerText = 'Editar servicio';
+      (document.getElementById('service-id') as HTMLInputElement).value = s.id;
+      (form.elements.namedItem('nombre') as HTMLInputElement).value = s.nombre;
+      (form.elements.namedItem('categoria') as HTMLInputElement).value = s.categoria;
+      (form.elements.namedItem('descripcion') as HTMLTextAreaElement).value = s.descripcion;
+      (form.elements.namedItem('duracion_min') as HTMLInputElement).value = s.duracion_min;
+      (form.elements.namedItem('precio') as HTMLInputElement).value = s.precio;
+      modal!.style.display = 'flex';
+    };
+
+    (window as any).deleteService = async (id: number) => {
+      if (!confirm('¿Seguro que quieres eliminar este servicio?')) return;
+      const { error } = await supabase.from('servicios').delete().eq('id', id);
+      if (error) (window as any).showToast(error.message, 'error');
+      else {
+        (window as any).showToast('Servicio eliminado', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    };
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const id = formData.get('id');
+      const data = {
+        nombre: formData.get('nombre'),
+        categoria: formData.get('categoria'),
+        descripcion: formData.get('descripcion'),
+        duracion_min: parseInt(formData.get('duracion_min') as string),
+        precio: parseFloat(formData.get('precio') as string),
+      };
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: salon } = await supabase.from('salones').select('id').eq('owner_id', session?.user.id).single();
+      
+      let res;
+      if (id) res = await supabase.from('servicios').update(data).eq('id', id);
+      else res = await supabase.from('servicios').insert([{ ...data, salon_id: salon.id }]);
+
+      if (res.error) (window as any).showToast(res.error.message, 'error');
+      else {
+        (window as any).showToast('Cambios guardados', 'success');
+        (window as any).closeModal();
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    });
+  </script>
+</AdminLayout>
